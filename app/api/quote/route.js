@@ -3,6 +3,7 @@ import { studioDevnet } from 'genlayer-js/chains';
 import { CONTRACT_ADDRESS, CHAIN_ID } from '../../../lib/constants.mjs';
 import { validateAction, isAddress } from '../../../lib/guards.mjs';
 import { quoteSimulationAccount } from '../../../lib/sdk-account.mjs';
+import { requireGate0Owner } from '../../../lib/owner-gate.mjs';
 import { assertPinnedDeployment } from '../../../lib/pinned.mjs';
 import { jsonErr, jsonOk } from '../../../lib/server-rpc.mjs';
 import { quotePermit } from '../../../lib/quote-throttle.mjs';
@@ -20,6 +21,7 @@ export async function POST(request) {
     if(bodyText.length>3000) return jsonErr(new Error('Request too large.'),413);
     const body=JSON.parse(bodyText);
     if (!isAddress(body?.account))return jsonErr(new Error('Connect a valid wallet account for a signer-bound quote.'),400);
+    try { requireGate0Owner(body.account); } catch (error) { return jsonErr(error,403); }
     const error=validateAction(body?.action);
     if (error) return jsonErr(new Error(error),400);
     if(studioDevnet.id!==CHAIN_ID) throw new Error('SDK chain mismatch.');

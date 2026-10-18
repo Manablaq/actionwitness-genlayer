@@ -6,6 +6,8 @@ ActionWitness turns an intended action into a verifiable policy decision. The ap
 
 > **Scope:** Studio Devnet (chain **61997**) development preview. No new contract deployment. This app is **not** a production authorization protocol, and the Intelligent Contract always has `authorization_usable=false` in its tested Gate 0 schema.
 
+> **Release status (2026-10-18):** Public website https://actionwitness-genlayer-app.vercel.app is live, with HTTP 200 for health, snapshot and live account-bound fee quotation. The repository contains the SHA-256-verified original contract, lockfile, and a 143-entry evidence manifest, published at commit `d54104aa5d140562fea9295e47e9b50d08cccac1`. The contract's `review_sample` is **OWNER_ONLY**. The current owner-restriction UI/API patch must be deployed before a new reviewer release is claimed. No real browser-wallet write has been independently verified, and the separate Gate 1D formal certificate remains pending. A `FINALIZED` consensus status alone does not prove a successful GenVM execution.
+
 ## Verified deployment
 
 | Property | Value |
@@ -29,7 +31,7 @@ Historical Gate 0 smoke-test references (these are real finalized reference tran
 Requires Node.js 22.x and npm.
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -41,13 +43,13 @@ npm run build
 npm start
 ```
 
-**Important:** R4 was cloud-built on Vercel with Next.js 16.4.2 and npm audit reporting zero vulnerabilities; 29 Node unit tests and the production build passed. Live read-only health and snapshot endpoints returned HTTP 200 and matched the pinned deployed contract. Browser wallet execution is still **not** end-to-end verified; no new blockchain write is authorized.
+**Important:** The authenticated local Mac repository verification on 2026-10-18 passed 43 tests, production build and zero-vulnerability npm audit at published commit `d54104aa5d140562fea9295e47e9b50d08cccac1`. The owner-only guard adds additional tests that must pass before its deployment. Live read-only health and snapshot endpoints returned HTTP 200 and matched the pinned deployed contract. Browser wallet execution is still **not** end-to-end verified; no new blockchain write is authorized.
 
 ## User workflow
 
 1. **Overview:** check the network and latest finalized contract snapshot. Network errors are shown explicitly, never replaced by hard-coded mock data.
 2. **Connect wallet:** a browser EIP-1193 wallet (e.g. MetaMask) is used; no private key is entered into the app. Before signing, the app requires Studio Devnet `61997` and re-verifies the selected wallet account.
-3. **New review:** type a synthetic review prompt; get a *fresh* fee estimate from the SDK through `/api/quote`; specify a maximum spend cap in GEN; explicitly acknowledge the on-chain cost and safety limitations.
+3. **New review:** only the original contract owner may write (`OWNER_ONLY` on chain). Other connected wallets are read-only. The owner types a synthetic review prompt; get a *fresh* fee estimate from the SDK through `/api/quote`; specify a maximum spend cap in GEN; explicitly acknowledge the on-chain cost and safety limitations.
 4. **Submit:** the app requotes the *exact* review input and checks the cap again before using the EIP-1193 wallet-backed SDK to call `review_sample`. There are **no automatic write retries**. A returned transaction hash is stored in the browser for tracking.
 5. **Verify:** paste any transaction hash and query its network status. For finalized status the receipt is checked separately. Finality alone does **not** prove the policy decision; the app also shows the latest finalized shared snapshot.
 6. **Activity:** two authenticated historical smoke-test references plus newer **browser-local** submissions. Activity is not presented as an indexed global history.
@@ -98,7 +100,11 @@ For a release to be considered **complete**, verify all points in [`docs/RELEASE
 
 ## Historical evidence
 
-The authoritative contract source and 143-file sealed evidence manifest remain on the operator's Mac (`~/Downloads/actionwitness-gate0` and `~/Downloads/actionwitness-gate0-reviewer-seal-r1`). They have not been copied into this generated front-end repository because their bytes and sharing permissions are not part of this delivery. Preserve them in an appropriately scoped evidence archive and never replace them with unverified reconstructions.
+The SHA-256-verified canonical contract source now resides in `contracts/action_witness_gate0.py` and the 143-entry cryptographic manifest in `evidence/SHA256_MANIFEST.txt`. The underlying raw forensic journal files remain on the operator Mac and are not published, as intended. Preserve them without modification.
+
+## Archived implementation notes (historical; superseded by the release status above)
+
+The following R2–R4 notes describe earlier staged builds and are kept for provenance. Their pending-item lists are **not** the current repository status; use the top-of-file release status and `docs/FINAL_RELEASE_HANDOFF.md` for current facts.
 
 ## R2 reviewer hardening (2026-10-17)
 
