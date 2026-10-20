@@ -12,12 +12,12 @@ owner-only Gate 0 contract.
 
 ## Public artifacts
 
-After this repository commit is pushed, replace `COMMIT_SHA` in the two URLs
-with that immutable commit ID:
+The immutable release commit is
+`2ae086ea2ee2e32bdf72e808297ae7b2281939bb`:
 
 ```text
-https://raw.githubusercontent.com/Manablaq/actionwitness-genlayer/COMMIT_SHA/public/evidence/action-delivery-v1.json
-https://raw.githubusercontent.com/Manablaq/actionwitness-genlayer/COMMIT_SHA/public/evidence/evidence-delivery-v1.json
+https://raw.githubusercontent.com/Manablaq/actionwitness-genlayer/2ae086ea2ee2e32bdf72e808297ae7b2281939bb/public/evidence/action-delivery-v1.json
+https://raw.githubusercontent.com/Manablaq/actionwitness-genlayer/2ae086ea2ee2e32bdf72e808297ae7b2281939bb/public/evidence/evidence-delivery-v1.json
 ```
 
 Compute the exact lowercase SHA-256 values locally before signing:
@@ -26,6 +26,12 @@ Compute the exact lowercase SHA-256 values locally before signing:
 shasum -a 256 public/evidence/action-delivery-v1.json
 shasum -a 256 public/evidence/evidence-delivery-v1.json
 ```
+
+Release-commit values:
+
+- Default policy SHA-256: `2a468b13e7880df01ac8c901fb19260ae9ca2564c96e3f1d2a758d2927e51a0b`
+- Action SHA-256: `c32eb9f496919b7aca2eba2b178e16ca3651788d6332c8065cba2c115334a77f`
+- Evidence SHA-256: `55c5d7099fa5db9226ba3e6eb0d949c65f884b7284640dcbb1e97e63794791cd`
 
 ## Ordered wallet run
 
