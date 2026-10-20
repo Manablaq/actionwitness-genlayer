@@ -1,30 +1,54 @@
-# ActionWitness — Decisions with proof
+# ActionWitness — Shared policy workflows with proof
 
-**A usable GenLayer Studio Devnet dApp around the existing, finalized ActionWitness Gate 0 Intelligent Contract.**
+**A reusable GenLayer workflow primitive for hash-pinned evidence and value-bearing policy decisions.**
 
-ActionWitness turns an intended action into a verifiable policy decision. The app has an interactive dashboard, direct wallet connection, live finalized contract snapshot, dynamic transaction-fee estimation, one-click action review (after explicit wallet confirmation), transaction finality checks, activity tracking, and an explanation of the important security boundaries.
+The repository now contains two deliberately separated contracts:
 
-> **Scope:** Studio Devnet (chain **61997**) development preview. No new contract deployment. This app is **not** a production authorization protocol, and the Intelligent Contract always has `authorization_usable=false` in its tested Gate 0 schema.
+- `contracts/action_witness_workflow.py` is the submission target. It is multi-user and value-bearing: anyone may register an immutable policy, a requester funds a workflow for a distinct beneficiary, the beneficiary submits evidence, any address may trigger independent review, and the finalized decision controls whether the beneficiary claims the escrow or the requester receives a refund.
+- `contracts/action_witness_gate0.py` is retained as historical provenance for the original owner-only synthetic smoke test. It is not the product path and must not be presented as the Builder Project.
 
-> **Release status (2026-10-18):** Public website https://actionwitness-genlayer-app.vercel.app is live, with HTTP 200 for health, snapshot and live account-bound fee quotation. The repository contains the SHA-256-verified original contract, lockfile, and a 143-entry evidence manifest, published at commit `d54104aa5d140562fea9295e47e9b50d08cccac1`. The contract's `review_sample` is **OWNER_ONLY**. The current owner-restriction UI/API patch must be deployed before a new reviewer release is claimed. No real browser-wallet write has been independently verified, and the separate Gate 1D formal certificate remains pending. A `FINALIZED` consensus status alone does not prove a successful GenVM execution.
+ActionWitness turns a committed policy, a public action artifact, and beneficiary-supplied evidence into an independently reviewed decision with an on-chain escrow consequence.
 
-## Verified deployment
+> **Scope:** Studio Devnet (chain **61997**) development preview. The shared workflow contract is implemented, deployed, and schema-verified at the replacement address below. A live multi-wallet workflow evidence run is still required before claiming complete end-to-end release evidence. The historical Gate 0 address below is not the shared workflow deployment.
+
+> **Release status:** The old Gate 0 deployment is historical only. Do not use its owner-only address or synthetic transactions as evidence for the shared workflow. The replacement deployment is live and schema-verified; the remaining release gate is policy registration, funded workflow creation, beneficiary evidence submission, finalized review, and payout/refund claim.
+
+## Historical Gate 0 deployment (not the submission target)
 
 | Property | Value |
 |---|---|
 | Chain | `61997` / Studio Devnet |
 | RPC | `https://studio-dev.genlayer.com/api` |
-| Existing Intelligent Contract | `0x4CB0C1b73cc6765504b3967E79c17174BbCD63F4` |
+| Historical Intelligent Contract | `0x4CB0C1b73cc6765504b3967E79c17174BbCD63F4` |
 | Pinned source SHA-256 | `e4ef6225778922a06de5d62bd4cdd562e0b4b978bb9ec49102f892c6a3a2dbc9` |
 | SDK | `genlayer-js@2.0.0-rc.1` (explicit RC pin) |
 | Read method | `get_snapshot()` with `LATEST_FINAL` |
-| Write method | `review_sample(string)` |
+| Historical write method | `review_sample(string)` |
 | Receipt/status | `gen_getTransactionStatusDetails` and `eth_getTransactionReceipt` |
 
-Historical Gate 0 smoke-test references (these are real finalized reference transactions, **not fabricated demo API data**):
+Historical Gate 0 smoke-test references (real finalized references, **not evidence of the new workflow**):
 
 - DENY: `0x0506b03f065d2b026d57116c4a8cc369466e2e1276e6fa99fe6769405db24b4f`
 - ALLOW: `0xf48d2ab93a11c0c9b049a17ea6baea0c64f87215eb149696d5c8d7c00fe8f2a5`
+
+## Shared workflow contract
+
+Replacement deployment checkpoint:
+
+- Contract: `0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023`
+- Deployment transaction: `0x3e4281860e5e3e074d7342ba45c43ff3bd4e42ae7c18680f23ae2c393e6b047e`
+- Explorer: https://explorer-studio-dev.genlayer.com/address/0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023
+- Finalized schema: `ACTIONWITNESS_SHARED_WORKFLOW_V1`
+
+The new contract exposes this lifecycle:
+
+1. `register_policy(policy_id, policy_json, policy_sha256)` stores a canonical immutable policy. The policy contains a bounded ordered list of criteria shared by future workflows.
+2. `create_workflow(workflow_id, policy_id, action_uri, action_sha256, beneficiary)` is payable. The requester must be distinct from the beneficiary, and the attached native GEN becomes the escrow amount.
+3. `submit_evidence(workflow_id, evidence_uri, evidence_sha256)` is restricted to the beneficiary and can happen only once.
+4. `review_workflow(workflow_id)` can be called by any address. Both the leader and validator independently retrieve the pinned action and evidence URLs, verify HTTPS/size/UTF-8/SHA-256, apply every committed criterion, and compare the decision, criterion results, and observed digests.
+5. `claim_payout(workflow_id)` is restricted to the finalized recipient. `APPROVED` makes the beneficiary eligible; `REJECTED` makes the requester eligible for a refund. The claim flag is written before the external GEN transfer to prevent replay.
+
+The contract fails closed on malformed model output, policy contradictions, unavailable or hash-mismatched artifacts, repeated IDs, wrong roles, zero funding, and duplicate claims. The old owner-only contract remains in the tree only to preserve the historical release trail.
 
 ## Start locally
 
@@ -43,45 +67,59 @@ npm run build
 npm start
 ```
 
-**Important:** The authenticated local Mac repository verification on 2026-10-18 passed 43 tests, production build and zero-vulnerability npm audit at published commit `d54104aa5d140562fea9295e47e9b50d08cccac1`. The owner-only guard adds additional tests that must pass before its deployment. Live read-only health and snapshot endpoints returned HTTP 200 and matched the pinned deployed contract. Browser wallet execution is still **not** end-to-end verified; no new blockchain write is authorized.
+The shared-workflow UI intentionally refuses to sign until a deployed
+`ActionWitnessWorkflow` address is configured. Set
+`NEXT_PUBLIC_WORKFLOW_CONTRACT_ADDRESS` and `WORKFLOW_CONTRACT_ADDRESS` only
+after the fresh deployment has been independently inspected and recorded.
 
-## User workflow
+## Submission evidence required for the new release
 
-1. **Overview:** check the network and latest finalized contract snapshot. Network errors are shown explicitly, never replaced by hard-coded mock data.
-2. **Connect wallet:** a browser EIP-1193 wallet (e.g. MetaMask) is used; no private key is entered into the app. Before signing, the app requires Studio Devnet `61997` and re-verifies the selected wallet account.
-3. **New review:** only the original contract owner may write (`OWNER_ONLY` on chain). Other connected wallets are read-only. The owner types a synthetic review prompt; get a *fresh* fee estimate from the SDK through `/api/quote`; specify a maximum spend cap in GEN; explicitly acknowledge the on-chain cost and safety limitations.
-4. **Submit:** the app requotes the *exact* review input and checks the cap again before using the EIP-1193 wallet-backed SDK to call `review_sample`. There are **no automatic write retries**. A returned transaction hash is stored in the browser for tracking.
-5. **Verify:** paste any transaction hash and query its network status. For finalized status the receipt is checked separately. Finality alone does **not** prove the policy decision; the app also shows the latest finalized shared snapshot.
-6. **Activity:** two authenticated historical smoke-test references plus newer **browser-local** submissions. Activity is not presented as an indexed global history.
+The old Gate 0 transaction hashes cannot satisfy the Builder Project request.
+The release packet must include, in order, the immutable GitHub commit, the
+new deployment transaction, policy-registration transaction, requester
+funding transaction, beneficiary evidence-submission transaction, finalized
+review transaction, and beneficiary-claim or requester-refund transaction.
+Each hash must be checked against the new contract address and the workflow
+ID/state returned by `get_workflow`.
+
+**Important:** The current repository checks the shared workflow source and the legacy UI guards. A production build and a real two-wallet workflow run must be completed against the fresh deployment before claiming end-to-end readiness.
+
+## Historical Gate 0 provenance
+
+The original owner-only synthetic smoke contract and its old UI helpers remain
+only so the earlier release can be audited. They are not imported by the
+default route and are not part of the new submission path. The Builder Project
+must be evaluated from `ActionWitnessWorkflow`, the shared-workflow UI, and a
+fresh multi-wallet deployment packet.
 
 ## Architecture
 
 ```text
 Browser / Next.js App Router
-  app/page.jsx                Accessible responsive dApp UI
-  lib/guards.mjs              Input, cap, snapshot and hash validation
-  lib/constants.mjs           Deployed contract identity and historical references
-  app/api/health              Chain and pinned-source/schema health check
-  app/api/snapshot            SDK finalized readContract(get_snapshot)
-  app/api/quote               SDK estimateTransactionFeesForWrite(review_sample)
-  app/api/tx/[hash]            Read-only finality and receipt lookup
-  lib/server-rpc.mjs          RPC allowlist (no send/sign methods)
-  lib/pinned.mjs              Verify deployed code against exact source SHA-256
+  app/page.jsx                Shared workflow dApp entry point
+  app/shared-workflow-page.jsx
+                             Policy, funding, evidence, review, and claim UI
+  lib/workflow-constants.mjs  Fresh deployment/network identity
+  contracts/action_witness_workflow.py
+                             Multi-user value-bearing workflow contract
+  tests/workflow-contract.test.mjs
+                             Static security and lifecycle invariants
 ```
 
-The API routes do not accept private keys and cannot submit writes. Only a wallet provider in the browser can sign a review, after explicit user confirmation. No RPC proxy forwarding arbitrary methods is exposed.
+The browser signs only the new workflow contract address configured through
+`NEXT_PUBLIC_WORKFLOW_CONTRACT_ADDRESS`; it refuses to sign when that value is
+missing. No API route accepts private keys or forwards arbitrary write methods.
+The old Gate 0 helpers are historical provenance, not a fallback path.
 
 ## Security and known limitations
 
-- **Testnet only.** Studio Devnet can reset, redeploy, or change network fee policy. The app fails closed when the pinned chain/schema is not observed.
-- **Global state.** `get_snapshot` exposes the *most recent* decision and counters for the contract as a whole. It does not give an authoritative per-user list. Browser history is stored in localStorage and can be deleted/modified by its owner.
-- **Not an authorization system.** A contract verdict is not permission to execute a real-world action. `authorization_usable=false` is a deliberate part of this contract's Gate 0 semantics.
-- **Prompt privacy.** Review strings are submitted to a public testnet and fee simulation. Never enter real credentials, private customer data, or secrets.
-- **Estimates are estimates.** Network policy and prices can change. The fee is re-estimated right before signing. Your wallet independently confirms the actual transaction. No automatic retry occurs after an uncertain send outcome.
-- **No transaction indexer.** `gen_getTransactionStatusDetails` verifies finality for a supplied hash, not a historical decision index. The documented two historical verdicts are backed by the original R4/R13 evidence from 2026-10-16/17.
-- **No anti-spam infrastructure.** In production add rate limits, abuse mitigation, monitoring, and an authenticated indexer. On a fee-charging preview, public simulation can be expensive.
-- **Known Gate 1D exception.** The separate legacy formal Gate 1D certificate remains pending; subsequent successful Gate 1E read-only and live finality checks do not retroactively complete it.
-- **Browser wallet / SDK compatibility:** Before releasing, test `createClient({chain:studioDevnet, account, provider})` and SDK simulation using the *installed* v2 RC with your specific wallet. Never fall back to historical cached fees if live estimation fails.
+- **Testnet only.** Studio Devnet can reset, redeploy, or change network fee policy. The app fails closed when the configured chain is not observed and refuses to sign without the fresh workflow address.
+- **Escrow safety.** The claim flag is committed before the external transfer, so a successful state transition cannot be replayed. If a child transfer fails at the network layer, the workflow remains marked claimed; the deployment must therefore be tested with the target wallet and a verified payout transaction before submission.
+- **Evidence privacy.** Action and evidence URLs are public HTTPS artifacts retrieved by validators. Never use credentials, private customer data, or secrets.
+- **Finality is not a verdict.** A finalized review transaction must also be checked through `get_workflow` for the expected workflow ID, decision, evidence digests, and terminal status.
+- **Testnet scope.** Studio Devnet can reset, redeploy, or change fee policy. The on-chain packet must identify the exact fresh deployment and all subsequent workflow transactions.
+- **Operational controls.** A public deployment still needs rate limiting, monitoring, an indexed workflow history, and an incident process. These are deployment controls, not hidden authorization assumptions in the contract.
+- **SDK compatibility:** Run the installed GenLayer SDK against the fresh deployment before the evidence run. Never fall back to historical contract addresses or cached fee estimates.
 
 ## Deploy on Vercel
 
@@ -96,36 +134,17 @@ npx vercel --prod
 
 Follow Vercel authentication prompts locally. No secrets are required by the application itself; do not set any environment variable containing a wallet private key. The app uses the canonical public RPC, which may be blocked by Cloudflare 1010 for particular server environments. If `/api/health` reports HTTP 403, contact GenLayer; do **not** bypass Cloudflare with header spoofing or unapproved proxies.
 
-For a release to be considered **complete**, verify all points in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md).
+For a release to be considered **complete**, verify all points in
+[`docs/SHARED_WORKFLOW_RELEASE.md`](docs/SHARED_WORKFLOW_RELEASE.md).
 
 ## Historical evidence
 
 The SHA-256-verified canonical contract source now resides in `contracts/action_witness_gate0.py` and the 143-entry cryptographic manifest in `evidence/SHA256_MANIFEST.txt`. The underlying raw forensic journal files remain on the operator Mac and are not published, as intended. Preserve them without modification.
 
-## Archived implementation notes (historical; superseded by the release status above)
+## Historical artifacts
 
-The following R2–R4 notes describe earlier staged builds and are kept for provenance. Their pending-item lists are **not** the current repository status; use the top-of-file release status and `docs/FINAL_RELEASE_HANDOFF.md` for current facts.
-
-## R2 reviewer hardening (2026-10-17)
-
-This version corrects the transaction-success model: the Verify page only shows successful GenVM execution when a matching canonical GenLayer transaction receipt identifies the same hash, target contract, final consensus status and `FINISHED_WITH_RETURN`. An EVM transport receipt or `FINALIZED` status **alone cannot prove contract success**. Contract ALLOW/DENY decision attribution additionally requires separately grounded decision evidence; a transaction hash is not an indexed policy decision.
-
-Wallet network switching and account identity now use explicit EIP-1193 verification, including a final check before invoking the SDK write. `studioDevnet` is pinned via the RC's SDK chain object; no undocumented alias such as `studionet` is substituted. The fee cap applies to the consensus deposit and **does not claim to cap additional EVM gas**.
-
-The public fee quote route now has a best-effort server-instance request limiter and same-origin checks. It is not a distributed anti-abuse system and requires Vercel Firewall or a durable rate limiter before open public production access.
-
-Run `npm test` to execute 29 unit checks, including failure and rejection paths. A successful Next.js build is not evidence of a real wallet transaction. The existing Gate 0 contract has not been modified; its Gate 1D formal certificate remains pending. Before reviewer submission, verify the site is publicly accessible, retrieve actual canonical Python source from the operator's Mac, produce a lockfile, and perform a separately authorized wallet transaction only if necessary.
-
-## R4 security and real-network verification (2026-10-17)
-
-- Next.js upgraded to `16.4.2` with `postcss` override `8.5.23` (React pinned at `19.1.10`). Vercel cloud dependency audit: **0 vulnerabilities**.
-- Cloud build and 29/29 tests passed. R4 isolated deployment: `dpl_4XLGYCaQ5cPfo3tuL3PuGNxm4H9e`, `https://actionwitness-genlayer-obkdk50pm-mr-albert-s-projects.vercel.app` (deployment auth may apply). The original production alias was **not promoted or replaced**.
-- `/api/health`: HTTP 200, chain `61997`, expected contract, canonical source hash `e4ef6225778922a06de5d62bd4cdd562e0b4b978bb9ec49102f892c6a3a2dbc9`.
-- `/api/snapshot`: HTTP 200, latest-final shared state `review_count=2`, `last_decision=ALLOW`, `authorization_usable=false`.
-- `/api/tx/<allow_hash>`: HTTP 200 with consensus `FINALIZED`, EVM receipt success. **GenVM execution remains unverified**: Studio Devnet returned `Method not found: gen_getTransactionReceipt` (despite this method appearing in newer published GenLayer API docs). The app does not claim transaction execution success on this basis. Independently verified historical local R13 evidence remains separate.
-- **Release blockers**: real EIP-1193 browser wallet integration/fee-quote submission test, unsupported consensus-receipt method reconciliation, public access policy, full canonical contract source/repo publication, Gate 1D certificate, and check-in of an npm lockfile. Never submit another write without separate explicit authorization.
-
-
-### R4 identity verification and release requirements
-
-See `docs/REVIEWER_HANDOFF_R4.md`. The source bundle has no private keys and does not claim GenVM execution success when Studio Devnet lacks the documented receipt RPC. Production publishing should be gated on a real wallet browser test and the original contract source archive.
+The earlier Gate 0 reports, release checklist, scripts, and deployment
+references remain for audit history only. They describe the superseded
+owner-only smoke path and are not release evidence for this workflow. Use
+[`docs/SHARED_WORKFLOW_RELEASE.md`](docs/SHARED_WORKFLOW_RELEASE.md) for the
+current implementation and evidence gate.

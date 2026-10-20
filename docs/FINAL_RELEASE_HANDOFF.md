@@ -1,4 +1,19 @@
-# ActionWitness submission handoff — 2026-10-18
+# ActionWitness submission handoff — historical Gate 0 release
+
+> This handoff describes the rejected owner-only synthetic smoke release. It
+> is retained for provenance and must not be used as the Builder Project
+> submission packet. The remediation is documented in
+> [`SHARED_WORKFLOW_RELEASE.md`](SHARED_WORKFLOW_RELEASE.md) and implemented
+> in `contracts/action_witness_workflow.py`.
+
+## Remediation status
+
+The replacement is a fresh multi-user, value-bearing workflow with immutable
+policies, requester/beneficiary role separation, beneficiary-bound evidence,
+validator-side independent artifact retrieval and criteria evaluation, and
+native-GEN payout/refund settlement. It requires a new deployment and a new
+six-transaction evidence packet before resubmission. None of the historical
+Gate 0 hashes below prove that replacement.
 
 ## Proven and published
 

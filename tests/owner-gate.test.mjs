@@ -5,7 +5,7 @@ import { isGate0Owner, requireGate0Owner } from '../lib/owner-gate.mjs';
 import { VERIFIED_OWNER, MAX_REVIEW_LENGTH } from '../lib/constants.mjs';
 import { validateAction } from '../lib/guards.mjs';
 
-test('owner-only contract: only verified historical owner wallet may quote and submit', () => {
+test('historical owner-only guard remains isolated from the shared workflow', () => {
   assert.equal(isGate0Owner(VERIFIED_OWNER), true);
   assert.equal(isGate0Owner(VERIFIED_OWNER.toLowerCase()), true);
   assert.equal(requireGate0Owner(VERIFIED_OWNER), true);
@@ -14,12 +14,14 @@ test('owner-only contract: only verified historical owner wallet may quote and s
     assert.throws(() => requireGate0Owner(bad), /OWNER_ONLY/);
   }
 });
-test('preflight guards exist in both API fee quote and browser submit paths', () => {
-  const api=readFileSync(new URL('../app/api/quote/route.js',import.meta.url),'utf8');
+test('the default route cannot fall back to the historical owner-only UI', () => {
   const ui=readFileSync(new URL('../app/page.jsx',import.meta.url),'utf8');
-  assert.match(api,/requireGate0Owner\(body\.account\)/);
-  assert.match(ui,/requireGate0Owner\(connected\)/);
-  assert.match(ui,/!walletMayWrite/);
+  const shared=readFileSync(new URL('../app/shared-workflow-page.jsx',import.meta.url),'utf8');
+  assert.match(ui,/SharedWorkflowPage/);
+  assert.doesNotMatch(ui,/review_sample|requireGate0Owner|OWNER_ONLY/);
+  assert.match(shared,/WORKFLOW_CONTRACT_ADDRESS/);
+  assert.match(shared,/create_workflow/);
+  assert.match(shared,/submit_evidence/);
 });
 test('review size respects exact owner-only contract 400-character bound', () => {
   assert.equal(MAX_REVIEW_LENGTH,400);

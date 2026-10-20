@@ -1,0 +1,29 @@
+/* Shared workflow surface */
+.workflow-shell{display:block;min-height:100vh}
+.workflow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:1440px;margin:26px auto 0;padding:0 24px 34px}
+.hero-section{max-width:1440px;margin:0 auto;padding:58px 24px 35px}
+.hero-section h1{font-size:clamp(38px,6vw,72px);letter-spacing:-4px;line-height:1.02;margin:14px 0 15px}
+.hero-section>p{max-width:720px;color:#6d786a;font-size:15px;line-height:1.8}
+.hero-meta{display:flex;flex-wrap:wrap;gap:18px;margin-top:24px;color:#7e8c79;font:10px var(--mono);letter-spacing:.2px}
+.workflow-card{padding:27px}
+.workflow-card h2{font-size:20px;letter-spacing:-.8px;margin-top:7px}
+.workflow-card .input-label{display:block;margin-top:17px}
+.workflow-card input,.workflow-card textarea{display:block;width:100%;margin-top:9px;padding:12px 13px;border:1px solid #dfe4d7;border-radius:7px;background:#fcfdf8;color:#1d2b1a;outline:none;font-size:12px}
+.workflow-card textarea{font-family:var(--mono);line-height:1.55;resize:vertical}
+.workflow-card input:focus,.workflow-card textarea:focus{border-color:#8eb75b;box-shadow:0 0 0 3px #a6cb7530}
+.workflow-card .primary-button,.workflow-card .outline-button{margin-top:19px}
+.workflow-card .primary-button{width:100%}
+.workflow-card .outline-button{width:100%}
+.workflow-card .field-help{font-size:11px;line-height:1.7;color:#7e8b7a;margin-top:17px}
+.workflow-card .helper-note{background:#f1f5eb;border-radius:7px;padding:11px 13px;text-align:left;line-height:1.6}
+.tx-link{display:inline-block;margin-left:6px;color:#4e7838;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.state-details{max-height:260px;overflow:auto;margin:12px 0 0;padding:11px;background:#e8eee1;border-radius:6px;color:#4b5e45;font:10px/1.55 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.helper-note code{font:10px var(--mono);overflow-wrap:anywhere;color:#557447}
+.inline-error{max-width:1392px;margin:0 auto 14px}
+.protocol-footer{max-width:1392px;margin:0 auto 35px;padding:17px 22px;border:1px solid #dfe6d6;border-radius:8px;background:#eef3e9;color:#657361;display:flex;gap:14px;align-items:flex-start;font-size:11px;line-height:1.7}
+.protocol-footer strong{color:#3c5636;white-space:nowrap}
+.topbar>div:nth-child(2){display:flex;flex-direction:column;gap:4px}
+.topbar>div:nth-child(2) span{font:9px var(--mono);color:#8b9687;letter-spacing:.6px}
+.topbar-spacer{flex:1}
+.topbar>.primary-button{margin-left:auto}
+@media(max-width:760px){.workflow-grid{grid-template-columns:1fr;padding:0 17px 26px}.hero-section{padding:36px 19px 22px}.hero-section h1{font-size:45px;letter-spacing:-2.8px}.hero-section>p{font-size:13px}.hero-meta{display:grid;gap:8px}.workflow-card{padding:21px}.protocol-footer{margin:0 17px 25px;display:block}.protocol-footer strong{display:block;margin-bottom:6px}.topbar{padding:0 19px}.topbar>div:nth-child(2) strong{font-size:14px}.topbar>div:nth-child(2) span{font-size:8px}}

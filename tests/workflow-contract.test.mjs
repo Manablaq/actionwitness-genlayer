@@ -1,0 +1,87 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const source = await readFile(resolve('contracts/action_witness_workflow.py'), 'utf8');
+const page = await readFile(resolve('app/page.jsx'), 'utf8');
+const sharedPage = await readFile(resolve('app/shared-workflow-page.jsx'), 'utf8');
+const healthRoute = await readFile(resolve('app/api/health/route.js'), 'utf8');
+const snapshotRoute = await readFile(resolve('app/api/snapshot/route.js'), 'utf8');
+const deployScript = await readFile(resolve('scripts/deploy-workflow.mjs'), 'utf8');
+
+test('shared workflow has no deployer-only write boundary', () => {
+  assert.match(source, /class ActionWitnessWorkflow\(gl\.contract\.Contract\)/);
+  assert.doesNotMatch(source, /OWNER_ONLY|self\.owner\s*=|owner:\s*Address/);
+  assert.match(source, /def register_policy\(/);
+  assert.match(source, /def create_workflow\(/);
+  assert.match(source, /def submit_evidence\(/);
+  assert.match(source, /def review_workflow\(/);
+});
+
+test('workflow binds two parties and native GEN escrow', () => {
+  assert.match(source, /@gl\.public\.write\.payable/);
+  assert.match(source, /gl\.message\.value/);
+  assert.match(source, /requester == beneficiary/);
+  assert.match(source, /Only the beneficiary may submit evidence/);
+  assert.match(source, /Only the finalized claim recipient may claim/);
+  assert.match(source, /emit_transfer\(value=u256\(amount\)\)/);
+});
+
+test('review independently retrieves both pinned artifacts and validates policy output', () => {
+  assert.match(source, /gl\.nondet\.web\.request\(uri, method="GET"\)/);
+  assert.match(source, /observed != expected_sha256/);
+  assert.match(source, /gl\.vm\.run_nondet\(evaluate_once, validator_fn\)/);
+  assert.match(source, /fresh = self\._review\(workflow_mem, policy_json\)/);
+  assert.match(source, /proposed\.get\("criteria_results"\) == fresh\.get\("criteria_results"\)/);
+  assert.match(source, /Model decision contradicts committed policy criteria/);
+});
+
+test('payout is replay protected and decision-bound', () => {
+  assert.match(source, /workflow\.status not in \(STATUS_APPROVED, STATUS_REJECTED\)/);
+  assert.match(source, /if workflow\.claimed:/);
+  assert.match(source, /workflow\.claimed = True/);
+  assert.match(source, /workflow\.claim_recipient = workflow\.beneficiary if result\["decision"\] == DECISION_APPROVED else workflow\.requester/);
+});
+
+test('policy hashing is canonical and rejects uncommitted fields', () => {
+  assert.match(source, /ensure_ascii=False/);
+  assert.match(source, /if set\(raw\) != \{"name", "criteria"\}/);
+  assert.match(source, /name = name\.strip\(\)/);
+});
+
+test('active frontend exposes only the shared workflow path', () => {
+  assert.doesNotMatch(page, /review_sample|OWNER_ONLY|action_witness_gate0/);
+  assert.doesNotMatch(sharedPage, /review_sample|OWNER_ONLY|action_witness_gate0/);
+  assert.doesNotMatch(sharedPage, /className="app-shell"/);
+  assert.match(sharedPage, /className="workflow-shell"/);
+  assert.match(sharedPage, /create_workflow/);
+  assert.match(sharedPage, /accountsChanged/);
+  assert.match(sharedPage, /chainChanged/);
+  assert.match(sharedPage, /LATEST_FINAL/);
+  assert.match(sharedPage, /credential-free HTTPS origin/);
+  assert.match(sharedPage, /placeholder="Enter a finalized workflow ID"/);
+});
+
+test('deployment preflight is pinned to Studio Devnet and fails closed', () => {
+  assert.match(deployScript, /studioDevnet/);
+  assert.match(deployScript, /EXPECTED_CHAIN_ID = 61997/);
+  assert.match(deployScript, /getContractSchemaForCode/);
+  assert.match(deployScript, /ACTIONWITNESS_DEPLOY_CONFIRM/);
+  assert.match(deployScript, /ACTIONWITNESS_DEPLOYER_PRIVATE_KEY/);
+  assert.doesNotMatch(deployScript, /testnetBradbury|studionet|action_witness_gate0/);
+});
+
+test('health endpoint verifies the configured deployment schema from finalized state', () => {
+  assert.match(healthRoute, /get_snapshot/);
+  assert.match(healthRoute, /TransactionHashVariant\.LATEST_FINAL/);
+  assert.match(healthRoute, /snapshot\?\.schema === WORKFLOW_SCHEMA/);
+  assert.match(healthRoute, /contractSchemaVerified/);
+});
+
+test('snapshot endpoint refuses an unexpected deployment schema', () => {
+  assert.match(snapshotRoute, /TransactionHashVariant\.LATEST_FINAL/);
+  assert.match(snapshotRoute, /snapshot\?\.schema !== WORKFLOW_SCHEMA/);
+  assert.match(snapshotRoute, /schemaVerified:true/);
+});
+
