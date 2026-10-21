@@ -25,21 +25,22 @@ owner-only synthetic Gate 0 demonstration.
 The escrow transfer is the real protocol effect. A verdict is not a generic
 permission to execute arbitrary off-chain actions.
 
-## Current deployment checkpoint
+## Current deployment and live-evidence checkpoint
 
-The shared contract has been deployed and its finalized schema has been
-inspected on Studio Devnet:
+The corrected shared contract and an approval-to-payout workflow have been
+exercised on Studio Devnet:
 
 - Network: `Studio Devnet`, chain ID `61997`
-- Contract: `0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023`
-- Deployment transaction: `0x3e4281860e5e3e074d7342ba45c43ff3bd4e42ae7c18680f23ae2c393e6b047e`
-- Explorer: https://explorer-studio-dev.genlayer.com/address/0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023
+- Contract: `0xB291b9de5D5982824CbFE6C084Ac543823254DF1`
+- Explorer: https://explorer-studio-dev.genlayer.com/address/0xB291b9de5D5982824CbFE6C084Ac543823254DF1
 - Finalized schema: `ACTIONWITNESS_SHARED_WORKFLOW_V1`
+- Deployment transaction: `0xef1b3025896c63fe71d2de563854485b79048463443006c3a972f8d9a226e809` (FINALIZED)
+- Workflow `delivery-001`: `APPROVED`, beneficiary payout claimed, final contract balance `0`
+- Registration, funding, evidence, review, and claim writes finalized with `FINISHED_WITH_RETURN`; transaction hashes are recorded in `ONCHAIN_EVIDENCE_RUN.md`.
 
-The deployment is not the complete workflow evidence packet. A fresh policy,
-funded workflow, beneficiary evidence submission, finalized review, and claim
-must still be recorded against this exact address before claiming a complete
-end-to-end release.
+The recorded on-chain approval-and-claim path is complete. This run does not
+establish the rejection/refund path or prove that the separately hosted frontend
+is configured for this deployment.
 
 ## Contract safety invariants
 

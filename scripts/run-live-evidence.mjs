@@ -1,4 +1,10 @@
-import { createAccount, createClient } from 'genlayer-js';
+import {
+  CALL_KEY_UNNAMED,
+  createAccount,
+  createClient,
+  encodeExternalMessageFeeParams,
+  MessageType,
+} from 'genlayer-js';
 import { studioDevnet } from 'genlayer-js/chains';
 import { ExecutionResult, TransactionHashVariant } from 'genlayer-js/types';
 
@@ -21,6 +27,11 @@ const ACTION_SHA256 = 'c32eb9f496919b7aca2eba2b178e16ca3651788d6332c8065cba2c115
 const EVIDENCE_URI = 'https://raw.githubusercontent.com/Manablaq/actionwitness-genlayer/2ae086ea2ee2e32bdf72e808297ae7b2281939bb/public/evidence/evidence-delivery-v1.json';
 const EVIDENCE_SHA256 = '55c5d7099fa5db9226ba3e6eb0d949c65f884b7284640dcbb1e97e63794791cd';
 const ESCROW = 1_000_000_000_000_000n;
+// Studio Devnet sim_getFeeConfig reports a 500k default external gas limit
+// and 300m max gas price. Keep the transfer allocation explicit so the
+// finalized child-message payout is funded by the parent claim transaction.
+const PAYOUT_EXTERNAL_GAS_LIMIT = 500_000n;
+const PAYOUT_EXTERNAL_MAX_GAS_PRICE = 300_000_000n;
 
 function fail(message) {
   console.error(`Live evidence stopped: ${message}`);
@@ -68,14 +79,18 @@ async function waitFinal(client, txHash) {
   return receipt;
 }
 
-async function writeFinal(label, account, functionName, args, value = 0n) {
+async function writeFinal(label, account, functionName, args, value = 0n, feeOptions = {}) {
   const client = clientFor(account);
   const call = { account, address: CONTRACT, functionName, args, ...(value ? { value } : {}) };
-  const quote = await client.estimateTransactionFeesForWrite(call);
+  const quote = await client.estimateTransactionFeesForWrite({ ...call, ...feeOptions });
   if (!quote?.distribution || BigInt(quote.feeValue || 0) <= 0n) throw new Error(`${label}: network returned no usable fee quote.`);
   const txHash = await client.writeContract({
     ...call,
-    fees: { distribution: quote.distribution, feeValue: BigInt(quote.feeValue) },
+    fees: {
+      distribution: quote.distribution,
+      messageAllocations: quote.messageAllocations,
+      feeValue: BigInt(quote.feeValue),
+    },
   });
   console.log(JSON.stringify({ event: 'submitted', label, functionName, txHash, actor: account.address }));
   const receipt = await waitFinal(client, txHash);
@@ -138,7 +153,20 @@ try {
   const recipientAccount = recipient?.toLowerCase() === beneficiary.address.toLowerCase() ? beneficiary : recipient?.toLowerCase() === requester.address.toLowerCase() ? requester : null;
   if (!recipientAccount) throw new Error(`Finalized claim recipient ${recipient || 'unknown'} does not match the supplied wallets.`);
   if (!workflow.claimed) {
-    await writeFinal('claim-payout', recipientAccount, 'claim_payout', [WORKFLOW_ID]);
+    const payoutAllocation = {
+      messageType: MessageType.External,
+      onAcceptance: false,
+      recipient: recipientAccount.address,
+      callKey: CALL_KEY_UNNAMED,
+      budget: PAYOUT_EXTERNAL_GAS_LIMIT * PAYOUT_EXTERNAL_MAX_GAS_PRICE,
+      feeParams: encodeExternalMessageFeeParams({
+        gasLimit: PAYOUT_EXTERNAL_GAS_LIMIT,
+        maxGasPrice: PAYOUT_EXTERNAL_MAX_GAS_PRICE,
+      }),
+    };
+    await writeFinal('claim-payout', recipientAccount, 'claim_payout', [WORKFLOW_ID], 0n, {
+      messageAllocations: [payoutAllocation],
+    });
     workflow = JSON.parse(String(await readFinal('get_workflow', [WORKFLOW_ID])));
   }
   const finalSnapshot = JSON.parse(String(await readFinal('get_snapshot', [])));

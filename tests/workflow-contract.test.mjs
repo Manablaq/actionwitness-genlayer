@@ -28,7 +28,8 @@ test('workflow binds two parties and native GEN escrow', () => {
   assert.match(source, /requester == beneficiary/);
   assert.match(source, /Only the beneficiary may submit evidence/);
   assert.match(source, /Only the finalized claim recipient may claim/);
-  assert.match(source, /emit_transfer\(value=u256\(amount\), on="finalized"\)/);
+  assert.match(source, /emit_transfer\(value=u256\(amount\)\)/);
+  assert.doesNotMatch(source, /emit_transfer\([^\n]*\bon=/);
 });
 
 test('review independently retrieves both pinned artifacts and validates policy output', () => {
@@ -79,6 +80,11 @@ test('live runner can target a corrected immutable deployment explicitly', async
   const runner = await readFile(resolve('scripts/run-live-evidence.mjs'), 'utf8');
   assert.match(runner, /ACTIONWITNESS_LIVE_CONTRACT_ADDRESS/);
   assert.match(runner, /process\.env\.ACTIONWITNESS_LIVE_CONTRACT_ADDRESS/);
+  assert.match(runner, /MessageType\.External/);
+  assert.match(runner, /CALL_KEY_UNNAMED/);
+  assert.match(runner, /encodeExternalMessageFeeParams/);
+  assert.match(runner, /messageAllocations: quote\.messageAllocations/);
+  assert.match(runner, /messageAllocations: \[payoutAllocation\]/);
 });
 
 test('health endpoint verifies the configured deployment schema from finalized state', () => {

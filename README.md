@@ -9,9 +9,9 @@ The repository now contains two deliberately separated contracts:
 
 ActionWitness turns a committed policy, a public action artifact, and beneficiary-supplied evidence into an independently reviewed decision with an on-chain escrow consequence.
 
-> **Scope:** Studio Devnet (chain **61997**) development preview. The shared workflow contract is implemented, deployed, and schema-verified at the replacement address below. A live multi-wallet workflow evidence run is still required before claiming complete end-to-end release evidence. The historical Gate 0 address below is not the shared workflow deployment.
+> **Scope:** Studio Devnet (chain **61997**) development preview. The corrected shared workflow has a finalized deployment and a completed approval-to-payout live evidence run; see [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). This verifies that on-chain path, not the separate hosted frontend or rejection/refund path. The historical Gate 0 address below is not the shared workflow deployment.
 
-> **Release status:** The old Gate 0 deployment is historical only. Do not use its owner-only address or synthetic transactions as evidence for the shared workflow. The replacement deployment is live and schema-verified; the remaining release gate is policy registration, funded workflow creation, beneficiary evidence submission, finalized review, and payout/refund claim.
+> **Release status:** The old Gate 0 deployment is historical only. Do not use its owner-only address or synthetic transactions as evidence for the shared workflow. The corrected replacement deployment and one approval/payout lifecycle are recorded on-chain. Frontend configuration and the rejection/refund lifecycle remain separate verification items.
 
 ## Historical Gate 0 deployment (not the submission target)
 

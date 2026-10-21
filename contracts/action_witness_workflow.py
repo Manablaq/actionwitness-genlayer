@@ -490,11 +490,9 @@ class ActionWitnessWorkflow(gl.contract.Contract):
         # Effects are recorded before the external message to prevent replay.
         workflow.claimed = True
         self.workflows[workflow_id] = workflow
-        # EOA/ghost payouts are external messages and must execute only after
-        # this finalized claim transition has been accepted. Without the
-        # explicit finalization mode, the payout child message is invalid on
-        # the current GenLayer runtime and the claim transaction fails.
-        _Recipient(workflow.claim_recipient).emit_transfer(value=u256(amount), on="finalized")
+        # External EOA transfers are emitted as finalized messages by this
+        # runtime. ContractProxy.emit_transfer does not accept an `on` keyword.
+        _Recipient(workflow.claim_recipient).emit_transfer(value=u256(amount))
 
     @gl.public.view
     def get_workflow(self, workflow_id: str) -> str:
