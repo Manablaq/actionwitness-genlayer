@@ -33,12 +33,14 @@ Historical Gate 0 smoke-test references (real finalized references, **not eviden
 
 ## Shared workflow contract
 
-Replacement deployment checkpoint:
+Corrected deployment and evidence checkpoint:
 
-- Contract: `0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023`
-- Deployment transaction: `0x3e4281860e5e3e074d7342ba45c43ff3bd4e42ae7c18680f23ae2c393e6b047e`
-- Explorer: https://explorer-studio-dev.genlayer.com/address/0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023
+- Contract: `0xB291b9de5D5982824CbFE6C084Ac543823254DF1`
+- Deployment transaction: `0xef1b3025896c63fe71d2de563854485b79048463443006c3a972f8d9a226e809` (finalized)
+- Explorer: https://explorer-studio-dev.genlayer.com/address/0xB291b9de5D5982824CbFE6C084Ac543823254DF1
 - Finalized schema: `ACTIONWITNESS_SHARED_WORKFLOW_V1`
+- Workflow `delivery-001`: approved, beneficiary claim finalized, `claimed: true`, final contract balance `0`
+- The approval-and-payout transaction packet is in [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). The former `0x0B5B…` address is superseded.
 
 The new contract exposes this lifecycle:
 
