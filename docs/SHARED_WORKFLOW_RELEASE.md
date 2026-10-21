@@ -38,9 +38,12 @@ exercised on Studio Devnet:
 - Workflow `delivery-001`: `APPROVED`, beneficiary payout claimed, final contract balance `0`
 - Registration, funding, evidence, review, and claim writes finalized with `FINISHED_WITH_RETURN`; transaction hashes are recorded in `ONCHAIN_EVIDENCE_RUN.md`.
 
-The recorded on-chain approval-and-claim path is complete. This run does not
-establish the rejection/refund path or prove that the separately hosted frontend
-is configured for this deployment.
+The recorded on-chain approval-and-claim path is complete. The hosted
+production frontend now targets this exact deployment: Vercel deployment
+`dpl_BXFzCzjRo5nWpcjDsTE2j1bDUrGY`, source commit
+`443e5dba3a188d374b9f33e24245e5b6a0c4a5df`. Its live health and snapshot
+endpoints verify chain `61997`, this contract address, the expected schema, and
+one finalized workflow. The rejection/refund path remains untested.
 
 ## Contract safety invariants
 

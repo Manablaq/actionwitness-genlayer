@@ -9,9 +9,9 @@ The repository now contains two deliberately separated contracts:
 
 ActionWitness turns a committed policy, a public action artifact, and beneficiary-supplied evidence into an independently reviewed decision with an on-chain escrow consequence.
 
-> **Scope:** Studio Devnet (chain **61997**) development preview. The corrected shared workflow has a finalized deployment and a completed approval-to-payout live evidence run; see [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). This verifies that on-chain path, not the separate hosted frontend or rejection/refund path. The historical Gate 0 address below is not the shared workflow deployment.
+> **Scope:** Studio Devnet (chain **61997**) testnet. The corrected shared workflow has a finalized deployment and a completed approval-to-payout live evidence run. The hosted production frontend is also configured to that deployment and its live health/snapshot endpoints verify the expected contract schema and workflow state. See [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). The rejection/refund path remains untested. The historical Gate 0 address below is not the shared workflow deployment.
 
-> **Release status:** The old Gate 0 deployment is historical only. Do not use its owner-only address or synthetic transactions as evidence for the shared workflow. The corrected replacement deployment and one approval/payout lifecycle are recorded on-chain. Frontend configuration and the rejection/refund lifecycle remain separate verification items.
+> **Release status:** The old Gate 0 deployment is historical only. Do not use its owner-only address or synthetic transactions as evidence for the shared workflow. The corrected replacement deployment, approval/payout lifecycle, and matching hosted frontend deployment are recorded and verified. The rejection/refund lifecycle is not yet demonstrated; no claim is made that both terminal paths have live evidence.
 
 ## Historical Gate 0 deployment (not the submission target)
 
@@ -41,6 +41,9 @@ Corrected deployment and evidence checkpoint:
 - Finalized schema: `ACTIONWITNESS_SHARED_WORKFLOW_V1`
 - Workflow `delivery-001`: approved, beneficiary claim finalized, `claimed: true`, final contract balance `0`
 - The approval-and-payout transaction packet is in [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). The former `0x0B5B…` address is superseded.
+- Hosted app: https://actionwitness-genlayer-app.vercel.app
+- Vercel production deployment: `dpl_BXFzCzjRo5nWpcjDsTE2j1bDUrGY`, built from Git commit `443e5dba3a188d374b9f33e24245e5b6a0c4a5df`.
+- Live `/api/health` and `/api/snapshot` both returned HTTP 200, confirmed chain `61997`, the exact contract above, `ACTIONWITNESS_SHARED_WORKFLOW_V1`, and one policy/one workflow. Final escrow balance was zero after the beneficiary claim.
 
 The new contract exposes this lifecycle:
 
@@ -70,9 +73,10 @@ npm start
 ```
 
 The shared-workflow UI intentionally refuses to sign until a deployed
-`ActionWitnessWorkflow` address is configured. Set
-`NEXT_PUBLIC_WORKFLOW_CONTRACT_ADDRESS` and `WORKFLOW_CONTRACT_ADDRESS` only
-after the fresh deployment has been independently inspected and recorded.
+`ActionWitnessWorkflow` address is configured. The hosted Vercel project now
+sets `NEXT_PUBLIC_WORKFLOW_CONTRACT_ADDRESS` and `WORKFLOW_CONTRACT_ADDRESS`
+to the verified deployment above. For a new deployment, update both values
+only after independently inspecting and recording its finalized schema.
 
 ## Submission evidence required for the new release
 
@@ -84,7 +88,7 @@ review transaction, and beneficiary-claim or requester-refund transaction.
 Each hash must be checked against the new contract address and the workflow
 ID/state returned by `get_workflow`.
 
-**Important:** The current repository checks the shared workflow source and the legacy UI guards. A production build and a real two-wallet workflow run must be completed against the fresh deployment before claiming end-to-end readiness.
+**Verified for this release:** the current repository's 56 tests and Next.js production build pass; the shared workflow was exercised with separate requester and beneficiary wallets through finalized policy registration, funding, evidence submission, review, and beneficiary payout; and the deployed frontend health/snapshot endpoints report the same contract. The evidence links and transaction hashes are in [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). This proves the approval-to-payout path, not the rejection/refund path or a formal security certification.
 
 ## Historical Gate 0 provenance
 
@@ -125,7 +129,7 @@ The old Gate 0 helpers are historical provenance, not a fallback path.
 
 ## Deploy on Vercel
 
-Create a **new** Vercel project (`actionwitness-app`, or another available slug) rather than replacing any existing deployment. Import this folder as a Next.js repository, or use the CLI from an authenticated workstation:
+The linked Vercel project is `actionwitness-genlayer-app`. Its production, preview, and development contract-address variables must both point to the currently verified shared-workflow deployment. The latest verified production deployment and its source commit are recorded above. To publish a later GitHub checkpoint, push to `main`, build a deployment from that exact commit, and verify `/api/health`, `/api/snapshot`, and the browser UI before sharing it:
 
 ```bash
 npm install

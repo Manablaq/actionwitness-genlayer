@@ -37,8 +37,17 @@ Final `get_snapshot` reported schema `ACTIONWITNESS_SHARED_WORKFLOW_V1`, one
 policy, one workflow, and zero contract balance.
 
 The earlier deployment at `0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023` is
-superseded for this evidence run. The hosted Vercel app is a separate artifact;
-this packet does not assert that it targets this deployment.
+superseded for this evidence run.
+
+## Hosted frontend verification (2026-10-21)
+
+- Public app: https://actionwitness-genlayer-app.vercel.app
+- Vercel production deployment: `dpl_BXFzCzjRo5nWpcjDsTE2j1bDUrGY` (`READY`)
+- Git commit: `443e5dba3a188d374b9f33e24245e5b6a0c4a5df`
+- Production and preview/development contract-address environment variables were aligned to `0xB291b9de5D5982824CbFE6C084Ac543823254DF1` before deployment.
+- `/api/health`: HTTP 200; `connected=true`; chain `61997`; exact contract address; `contractSchemaVerified=true`; snapshot schema `ACTIONWITNESS_SHARED_WORKFLOW_V1`, one policy, one workflow, zero contract balance.
+- `/api/snapshot`: HTTP 200; `source=LATEST_FINAL`; `schemaVerified=true`; same contract address and snapshot.
+- `/`: HTTP 200; server-rendered app identifies `ACTIONWITNESS_SHARED_WORKFLOW_V1` and the same contract address.
 
 ## Public artifacts
 
@@ -125,5 +134,5 @@ workflow transaction hashes, contract address, network/chain ID, both artifact U
 their SHA-256 values, and the final `get_workflow`/`get_snapshot` responses.
 The on-chain packet is complete for the recorded approval path: the claim flag
 is true, the beneficiary was the claim recipient, and the contract balance is
-zero. This does not certify a production frontend deployment or rejection/refund
-path.
+zero. The frontend deployment has separately been verified against the same
+contract and finalized snapshot. The rejection/refund path remains untested.
