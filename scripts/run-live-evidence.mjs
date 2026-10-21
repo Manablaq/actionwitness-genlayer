@@ -2,7 +2,7 @@ import { createAccount, createClient } from 'genlayer-js';
 import { studioDevnet } from 'genlayer-js/chains';
 import { ExecutionResult, TransactionHashVariant } from 'genlayer-js/types';
 
-const CONTRACT = '0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023';
+const CONTRACT = process.env.ACTIONWITNESS_LIVE_CONTRACT_ADDRESS || '0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023';
 const NETWORK = 'GenLayer Studio Devnet';
 const CHAIN_ID = 61997;
 const CONFIRMATION = 'I_UNDERSTAND';

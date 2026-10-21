@@ -75,6 +75,12 @@ test('deployment preflight is pinned to Studio Devnet and fails closed', () => {
   assert.doesNotMatch(deployScript, /testnetBradbury|studionet|action_witness_gate0/);
 });
 
+test('live runner can target a corrected immutable deployment explicitly', async () => {
+  const runner = await readFile(resolve('scripts/run-live-evidence.mjs'), 'utf8');
+  assert.match(runner, /ACTIONWITNESS_LIVE_CONTRACT_ADDRESS/);
+  assert.match(runner, /process\.env\.ACTIONWITNESS_LIVE_CONTRACT_ADDRESS/);
+});
+
 test('health endpoint verifies the configured deployment schema from finalized state', () => {
   assert.match(healthRoute, /get_snapshot/);
   assert.match(healthRoute, /TransactionHashVariant\.LATEST_FINAL/);

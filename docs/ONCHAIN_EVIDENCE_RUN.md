@@ -81,6 +81,15 @@ An optional `ACTIONWITNESS_REVIEWER_PRIVATE_KEY` may be supplied for a third
 wallet. The command prints each submitted and finalized transaction hash and
 ends only after `claimed: true` is verified from finalized contract state.
 
+After redeploying corrected bytecode, target the new immutable deployment
+explicitly; do not reuse the superseded contract address:
+
+```bash
+export ACTIONWITNESS_LIVE_CONTRACT_ADDRESS=0x<new-finalized-contract-address>
+npm run evidence:live
+unset ACTIONWITNESS_LIVE_CONTRACT_ADDRESS
+```
+
 ## Submission packet
 
 Attach the exact immutable Git commit, deployment transaction, six workflow
