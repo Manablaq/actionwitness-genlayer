@@ -9,6 +9,8 @@ owner-only Gate 0 contract.
 - Contract: `0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023`
 - Deployment transaction: `0x3e428186e5e3e074d7342ba45c43ff3bd4e42ae7c18680f23ae2c393e6b047e`
 - Schema: `ACTIONWITNESS_SHARED_WORKFLOW_V1`
+- Public app: https://actionwitness-genlayer-app.vercel.app
+- Production deployment: `dpl_Cs6Qf137mxGxm3XonGqbXpZxvpZW`
 
 ## Public artifacts
 
