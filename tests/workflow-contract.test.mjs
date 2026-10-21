@@ -22,6 +22,9 @@ test('shared workflow has no deployer-only write boundary', () => {
 test('workflow binds two parties and native GEN escrow', () => {
   assert.match(source, /@gl\.public\.write\.payable/);
   assert.match(source, /gl\.message\.value/);
+  assert.match(source, /beneficiary = _as_address\(beneficiary\)/);
+  assert.match(source, /requester = _sender\(\)/);
+  assert.match(source, /def _sender\(\)/);
   assert.match(source, /requester == beneficiary/);
   assert.match(source, /Only the beneficiary may submit evidence/);
   assert.match(source, /Only the finalized claim recipient may claim/);

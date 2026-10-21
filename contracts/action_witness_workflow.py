@@ -91,6 +91,18 @@ def _address_hex(value: Address) -> str:
     return str(value).lower()
 
 
+def _as_address(value: Address) -> Address:
+    """Normalize SDK/Direct-Mode address values before storage or comparison."""
+    if hasattr(value, "as_hex"):
+        return value
+    return Address(str(value))
+
+
+def _sender() -> Address:
+    """Return the caller in the storage-safe address representation."""
+    return _as_address(gl.message.sender_address)
+
+
 def _bounded_text(value: str, label: str, limit: int) -> str:
     if not isinstance(value, str):
         _fail(f"{label} must be text")
@@ -344,7 +356,7 @@ class ActionWitnessWorkflow(gl.contract.Contract):
         if policy_id in self.policies:
             _fail("Policy id is immutable and already registered")
         self.policies[policy_id] = policy_json
-        self.policy_publishers[policy_id] = gl.message.sender_address
+        self.policy_publishers[policy_id] = _sender()
         self.policy_count = int(self.policy_count) + 1
 
     @gl.public.view
@@ -360,11 +372,12 @@ class ActionWitnessWorkflow(gl.contract.Contract):
         policy_id = _bounded_id(policy_id, "Policy id")
         action_uri = _https_uri(action_uri, "Action URI")
         action_sha256 = _hash(action_sha256, "Action SHA-256")
+        beneficiary = _as_address(beneficiary)
         if workflow_id in self.workflows:
             _fail("Workflow id is immutable and already used")
         if policy_id not in self.policies:
             _fail("Unknown policy")
-        requester = gl.message.sender_address
+        requester = _sender()
         if requester == ZERO_ADDRESS or beneficiary == ZERO_ADDRESS or requester == beneficiary:
             _fail("Requester and beneficiary must be distinct nonzero addresses")
         amount = int(gl.message.value)
@@ -396,7 +409,7 @@ class ActionWitnessWorkflow(gl.contract.Contract):
         evidence_uri = _https_uri(evidence_uri, "Evidence URI")
         evidence_sha256 = _hash(evidence_sha256, "Evidence SHA-256")
         workflow = self._workflow(workflow_id)
-        if gl.message.sender_address != workflow.beneficiary:
+        if _sender() != workflow.beneficiary:
             _fail("Only the beneficiary may submit evidence")
         if workflow.status != STATUS_FUNDED:
             _fail("Evidence can only be submitted once for a funded workflow")
@@ -469,7 +482,7 @@ class ActionWitnessWorkflow(gl.contract.Contract):
             _fail("Workflow has no finalized payout")
         if workflow.claimed:
             _fail("Payout already claimed")
-        if gl.message.sender_address != workflow.claim_recipient:
+        if _sender() != workflow.claim_recipient:
             _fail("Only the finalized claim recipient may claim")
         amount = int(workflow.funded_amount)
         if amount <= 0 or int(self.balance) < amount:
