@@ -59,6 +59,28 @@ Every step must be checked against the latest finalized chain state. A
 transaction being accepted or finalized is not, by itself, proof that the
 workflow reached the intended state.
 
+## Safe local automation
+
+The repository also includes `npm run evidence:live`. It uses the pinned
+Studio Devnet SDK, waits for finalized execution after every write, and reads
+the latest finalized workflow before continuing. It does not print or store
+private keys. Run it only in a trusted local terminal, using two distinct
+funded wallets:
+
+```bash
+read -s "ACTIONWITNESS_REQUESTER_PRIVATE_KEY?Requester key: "
+export ACTIONWITNESS_REQUESTER_PRIVATE_KEY
+read -s "ACTIONWITNESS_BENEFICIARY_PRIVATE_KEY?Beneficiary key: "
+export ACTIONWITNESS_BENEFICIARY_PRIVATE_KEY
+export ACTIONWITNESS_LIVE_CONFIRM=I_UNDERSTAND
+npm run evidence:live
+unset ACTIONWITNESS_REQUESTER_PRIVATE_KEY ACTIONWITNESS_BENEFICIARY_PRIVATE_KEY ACTIONWITNESS_LIVE_CONFIRM
+```
+
+An optional `ACTIONWITNESS_REVIEWER_PRIVATE_KEY` may be supplied for a third
+wallet. The command prints each submitted and finalized transaction hash and
+ends only after `claimed: true` is verified from finalized contract state.
+
 ## Submission packet
 
 Attach the exact immutable Git commit, deployment transaction, six workflow
