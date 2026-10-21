@@ -42,8 +42,8 @@ Corrected deployment and evidence checkpoint:
 - Workflow `delivery-001`: approved, beneficiary claim finalized, `claimed: true`, final contract balance `0`
 - The approval-and-payout transaction packet is in [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). The former `0x0B5B…` address is superseded.
 - Hosted app: https://actionwitness-genlayer-app.vercel.app
-- Vercel production deployment: `dpl_BXFzCzjRo5nWpcjDsTE2j1bDUrGY`, built from Git commit `443e5dba3a188d374b9f33e24245e5b6a0c4a5df`.
-- Live `/api/health` and `/api/snapshot` both returned HTTP 200, confirmed chain `61997`, the exact contract above, `ACTIONWITNESS_SHARED_WORKFLOW_V1`, and one policy/one workflow. Final escrow balance was zero after the beneficiary claim.
+- Vercel production deployment: `dpl_DFMX9WwPKVr8QjoZcJJ61vNJsnbf`, built from Git commit `5bbe73bff6a599f5ceccef082c55e7edeeab1bed`.
+- Live `/api/health`, `/api/snapshot`, `/api/workflow/delivery-001`, and `/api/policy/delivery-v1` returned HTTP 200 and verified the expected chain, contract, schema, and finalized records. The production browser's **Read on-chain state** click returned `APPROVED` with `claimed: true`; final escrow balance is zero.
 
 The new contract exposes this lifecycle:
 
@@ -88,7 +88,7 @@ review transaction, and beneficiary-claim or requester-refund transaction.
 Each hash must be checked against the new contract address and the workflow
 ID/state returned by `get_workflow`.
 
-**Verified for this release:** the current repository's 56 tests and Next.js production build pass; the shared workflow was exercised with separate requester and beneficiary wallets through finalized policy registration, funding, evidence submission, review, and beneficiary payout; and the deployed frontend health/snapshot endpoints report the same contract. The evidence links and transaction hashes are in [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). This proves the approval-to-payout path, not the rejection/refund path or a formal security certification.
+**Verified for this release:** 57 tests and the Next.js production build pass; the shared workflow was exercised with separate requester and beneficiary wallets through finalized policy registration, funding, evidence submission, review, and beneficiary payout; and the production UI and server-side latest-final API read the same finalized workflow. The evidence links and transaction hashes are in [`docs/ONCHAIN_EVIDENCE_RUN.md`](docs/ONCHAIN_EVIDENCE_RUN.md). This proves the approval-to-payout path, not the rejection/refund path or a formal security certification.
 
 ## Historical Gate 0 provenance
 

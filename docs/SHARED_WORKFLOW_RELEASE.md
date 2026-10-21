@@ -39,11 +39,15 @@ exercised on Studio Devnet:
 - Registration, funding, evidence, review, and claim writes finalized with `FINISHED_WITH_RETURN`; transaction hashes are recorded in `ONCHAIN_EVIDENCE_RUN.md`.
 
 The recorded on-chain approval-and-claim path is complete. The hosted
-production frontend now targets this exact deployment: Vercel deployment
-`dpl_BXFzCzjRo5nWpcjDsTE2j1bDUrGY`, source commit
-`443e5dba3a188d374b9f33e24245e5b6a0c4a5df`. Its live health and snapshot
-endpoints verify chain `61997`, this contract address, the expected schema, and
-one finalized workflow. The rejection/refund path remains untested.
+production frontend targets this exact deployment: Vercel deployment
+`dpl_DFMX9WwPKVr8QjoZcJJ61vNJsnbf`, source commit
+`5bbe73bff6a599f5ceccef082c55e7edeeab1bed`. The latest production browser
+test clicked **Read on-chain state** for `delivery-001` and displayed the
+finalized `APPROVED` record with `claimed: true`; the prior browser-side RPC
+failure is fixed by routing finalized reads through server endpoints. The
+health, snapshot, workflow, and policy endpoints returned HTTP 200 and verified
+the expected chain, contract, schema, and state. The rejection/refund path
+remains untested.
 
 ## Contract safety invariants
 
@@ -62,7 +66,13 @@ one finalized workflow. The rejection/refund path remains untested.
 - The claim flag is persisted before the external transfer, preventing a
   successful claim from being replayed.
 
-## Required live evidence packet
+## Live evidence packet status
+
+The approval-to-payout packet below is complete and linked in
+`ONCHAIN_EVIDENCE_RUN.md`. It is a real multi-user, value-bearing flow on
+Studio Devnet, not merely a local simulation. The rejection-to-refund path is
+not yet live-tested; report that limitation accurately if the reviewer asks
+for both terminal outcomes.
 
 Run this sequence against one fresh deployment and record the exact hashes:
 
@@ -75,7 +85,7 @@ Run this sequence against one fresh deployment and record the exact hashes:
 | 5 | independent caller | `review_workflow` | finalized decision and validator-checked criteria |
 | 6 | decision recipient | `claim_payout` | beneficiary payout for approval or requester refund for rejection |
 
-The evidence packet must also include the exact Git commit, contract address,
+The evidence packet includes the exact Git commit, contract address,
 network/chain ID, policy/action/evidence URLs, all three SHA-256 values, and
 the final `get_workflow` and `get_snapshot` responses. Do not reuse the old
 Gate 0 address or its synthetic transactions.
@@ -115,9 +125,11 @@ git diff --check
 ```
 
 The GenVM semantic check must report `Validation passed` for
-`ActionWitnessWorkflow`. Local checks do not substitute for the live
-two-wallet evidence packet; deployment and on-chain execution remain separate
-release gates.
+`ActionWitnessWorkflow`. At source commit
+`5bbe73bff6a599f5ceccef082c55e7edeeab1bed`, the automated suite passes 57/57
+and the Next.js production build succeeds. Local checks do not substitute for
+the live two-wallet evidence packet; the approval path is completed, while
+rejection/refund remains untested.
 
 ## Reviewer response in one sentence
 

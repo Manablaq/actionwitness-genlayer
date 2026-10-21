@@ -42,12 +42,16 @@ superseded for this evidence run.
 ## Hosted frontend verification (2026-10-21)
 
 - Public app: https://actionwitness-genlayer-app.vercel.app
-- Vercel production deployment: `dpl_BXFzCzjRo5nWpcjDsTE2j1bDUrGY` (`READY`)
-- Git commit: `443e5dba3a188d374b9f33e24245e5b6a0c4a5df`
+- Vercel production deployment: `dpl_DFMX9WwPKVr8QjoZcJJ61vNJsnbf` (`READY`)
+- Git commit: `5bbe73bff6a599f5ceccef082c55e7edeeab1bed`
 - Production and preview/development contract-address environment variables were aligned to `0xB291b9de5D5982824CbFE6C084Ac543823254DF1` before deployment.
 - `/api/health`: HTTP 200; `connected=true`; chain `61997`; exact contract address; `contractSchemaVerified=true`; snapshot schema `ACTIONWITNESS_SHARED_WORKFLOW_V1`, one policy, one workflow, zero contract balance.
 - `/api/snapshot`: HTTP 200; `source=LATEST_FINAL`; `schemaVerified=true`; same contract address and snapshot.
 - `/`: HTTP 200; server-rendered app identifies `ACTIONWITNESS_SHARED_WORKFLOW_V1` and the same contract address.
+- `/api/workflow/delivery-001`: HTTP 200; source `LATEST_FINAL`; matching schema and workflow ID; finalized `APPROVED`, beneficiary claim recipient, `claimed=true`.
+- `/api/policy/delivery-v1`: HTTP 200; policy exists at `LATEST_FINAL`; matching schema verified.
+- Browser smoke test: entered `delivery-001`, clicked **Read on-chain state**, and confirmed the UI rendered `APPROVED / APPROVED` plus the complete finalized record. This specifically verifies the server-mediated RPC fix for the earlier browser `Failed to fetch` defect.
+- Local release checks at this commit: `npm test` passed 57/57, `npm run build` passed, and `git diff --check` passed.
 
 ## Public artifacts
 
