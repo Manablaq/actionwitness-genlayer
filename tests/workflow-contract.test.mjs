@@ -8,6 +8,9 @@ const page = await readFile(resolve('app/page.jsx'), 'utf8');
 const sharedPage = await readFile(resolve('app/shared-workflow-page.jsx'), 'utf8');
 const healthRoute = await readFile(resolve('app/api/health/route.js'), 'utf8');
 const snapshotRoute = await readFile(resolve('app/api/snapshot/route.js'), 'utf8');
+const workflowRoute = await readFile(resolve('app/api/workflow/[id]/route.js'), 'utf8');
+const policyRoute = await readFile(resolve('app/api/policy/[id]/route.js'), 'utf8');
+const finalizedReader = await readFile(resolve('lib/finalized-workflow-read.mjs'), 'utf8');
 const deployScript = await readFile(resolve('scripts/deploy-workflow.mjs'), 'utf8');
 
 test('shared workflow has no deployer-only write boundary', () => {
@@ -62,7 +65,9 @@ test('active frontend exposes only the shared workflow path', () => {
   assert.match(sharedPage, /create_workflow/);
   assert.match(sharedPage, /accountsChanged/);
   assert.match(sharedPage, /chainChanged/);
-  assert.match(sharedPage, /LATEST_FINAL/);
+  assert.doesNotMatch(sharedPage, /readContract/);
+  assert.match(sharedPage, /fetch\(`\/api\/workflow\//);
+  assert.match(sharedPage, /fetch\(`\/api\/policy\//);
   assert.match(sharedPage, /credential-free HTTPS origin/);
   assert.match(sharedPage, /placeholder="Enter a finalized workflow ID"/);
 });
@@ -100,5 +105,18 @@ test('snapshot endpoint refuses an unexpected deployment schema', () => {
   assert.match(snapshotRoute, /TransactionHashVariant\.LATEST_FINAL/);
   assert.match(snapshotRoute, /snapshot\?\.schema !== WORKFLOW_SCHEMA/);
   assert.match(snapshotRoute, /schemaVerified:true/);
+});
+
+test('public workflow and policy reads are server-side and pinned to latest finalized state', () => {
+  assert.match(finalizedReader, /TransactionHashVariant\.LATEST_FINAL/);
+  assert.match(finalizedReader, /functionName: 'get_snapshot'/);
+  assert.match(finalizedReader, /snapshot\?\.schema !== WORKFLOW_SCHEMA/);
+  assert.match(finalizedReader, /function validWorkflowId/);
+  assert.match(workflowRoute, /validWorkflowId\(id\)/);
+  assert.match(workflowRoute, /readVerifiedFinal\('get_workflow', \[id\]\)/);
+  assert.match(workflowRoute, /workflow\?\.workflow_id !== id/);
+  assert.match(workflowRoute, /source: 'LATEST_FINAL', schemaVerified: true/);
+  assert.match(policyRoute, /readVerifiedFinal\('get_policy', \[id\]\)/);
+  assert.match(policyRoute, /source: 'LATEST_FINAL', schemaVerified: true/);
 });
 
