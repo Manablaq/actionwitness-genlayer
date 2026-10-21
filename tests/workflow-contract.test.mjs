@@ -80,6 +80,8 @@ test('live runner can target a corrected immutable deployment explicitly', async
   const runner = await readFile(resolve('scripts/run-live-evidence.mjs'), 'utf8');
   assert.match(runner, /ACTIONWITNESS_LIVE_CONTRACT_ADDRESS/);
   assert.match(runner, /process\.env\.ACTIONWITNESS_LIVE_CONTRACT_ADDRESS/);
+  assert.match(runner, /0xB291b9de5D5982824CbFE6C084Ac543823254DF1/);
+  assert.doesNotMatch(runner, /0x0B5B0Dc6Af8556F0686e2dd3FF2106ab642C8023/);
   assert.match(runner, /MessageType\.External/);
   assert.match(runner, /CALL_KEY_UNNAMED/);
   assert.match(runner, /encodeExternalMessageFeeParams/);
